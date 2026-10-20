@@ -19,6 +19,13 @@ const wordFrom = (letters: string) =>
   fc.array(fc.constantFrom(...letters), { minLength: 5, maxLength: 5 }).map(cs => cs.join(''));
 const word = wordFrom(ALPHABET);
 
+const uniqueWord = fc
+  .uniqueArray(fc.constantFrom(...ALPHABET), {
+    minLength: 5,
+    maxLength: 5,
+  })
+  .map(letters => letters.join(''));
+
 // pattern: invariant. the result always has exactly five colors.
 it('returns exactly five colors', () => {
   fc.assert(
@@ -60,9 +67,42 @@ it('never credits a letter more times than the secret contains it', () => {
   );
 });
 
+// Pattern: conditional. Rotating five distinct letters gives all yellows.
+it('guessing common letters gives yellow letters', () => {
+  
+  fc.assert(
+    fc.property(uniqueWord, secret => {
+      const guess = secret.slice(1) + secret[0];
+
+      expect(matchGuess(secret, guess)).toEqual(['Y', 'Y', 'Y', 'Y', 'Y']);
+    }),
+  );
+});
+
+// Pattern: invariant. An earlier misplaced copy cannot consume a later green's letter.
+it('reserves matching letters for greens before assigning yellows', () => {
+  const uniqueWord = fc.uniqueArray(fc.constantFrom(...ALPHABET), {
+    minLength: 2,
+    maxLength: 2,
+  }).map(letters => letters.join(''));
+
+  fc.assert(
+    fc.property(uniqueWord, ([a, b]) => {
+      
+      const secret = a + a + a + b + a;
+      const guess  = a + b + a + b + a;
+
+      expect(matchGuess(secret, guess)).toEqual([
+        'G', 'B', 'G', 'G', 'G',
+      ]);
+    }),
+  );
+});
+
 describe('matchGuess', () => {
   it.todo('returns exactly five colors');
   it.todo('only uses the colors G, Y, B');
   it.todo('guessing the secret gives all greens');
   it.todo('never credits a letter more times than the secret contains it');
+  it.todo('guessing common letters gives yellow letters');
 });
