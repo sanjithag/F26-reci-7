@@ -72,3 +72,9 @@ Name one function or module in your team's project that would benefit from
 property-based testing. State two properties in English, name the pattern of
 each, and describe the generator you'd need, including anything about its
 inputs that a naive generator would get wrong.
+
+One function in OpenCode that would benefit from propert-based testing is the SessionsCursor module. It encodes pagination state into a URL-safe string and parses it back.
+
+The first property-based test would be algebraic. The test encodes a valid pagination state and then parses it to return an equivalent state. This is algebraic because using parse(make(state)) = state, so they are inverses of each other. The generator for this would be valid cursor objects with session IDs, finite timestamps, valid directions, and optionally, filters. The generator should include Unicode and empty search strings. A naive generator might produce invalid IDs or paths and non-finite timestamps.
+
+The second property-based test would be conditional such that if a string is invalid cursor data, parsing it fails with "Invalid cursor". The generator should construct invalid Base64URL strings, Base64URL wrapping malformed JSON, and encoded JSON with invalid fields. A naive generator would use naive random strings with Base64 decoding, and random mutations to produce mostly valid cursors.
